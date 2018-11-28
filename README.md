@@ -175,13 +175,23 @@ When you invoke the /token request, if the code is invalid, or if the code
 verifier does not match the challenge you used to obtain the code, the token
 request will return 401.
 
+## Teardown
+
+If you want to remove all the assets that were provisioned by the tool, do this:
+
+```
+node ./provisionAssets.js -v -o gaccelerate3 -e test -R
+
+```
+
 
 ## Support
 
 This example is just an illustration. It is not a supported part of Apigee Edge.
-If you need assistance, you can try inquiring on
-[The Apigee Community Site](https://community.apigee.com).  There is no service-level
-guarantee for responses to inquiries regarding this proxy.
+If you have questions on it, or would like assistance with it, you can try
+inquiring on [The Apigee Community Site](https://community.apigee.com).  There
+is no service-level guarantee for responses to inquiries regarding this example.
+
 
 ## License
 
