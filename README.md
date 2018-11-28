@@ -78,6 +78,8 @@ Nothing like the helper will ever be seen by a real user. This is just a develop
 
 If you want to invoke the API from the command line, you can create a code verifier and compute the code challenge using the accompanying tool, [contriveProofKey.js](./tools/contriveProofKey.js).  This tool just generates a random string and then computes a SHA256 hash of it.
 
+You need node and npm installed, in order to use this tool.
+
 ```js
 cd tools
 npm install
