@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProxyEndpoint name="oauth2">
+  <Description>Proxy Endpoint to handle OAuth 2.0 Authorization Code flow</Description>
+  <HTTPProxyConnection>
+    <BasePath>/20181127/oauth2-ac-pkce</BasePath>
+    <Properties/>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+
+  <PreFlow name="PreFlow">
+    <Request/>
+    <Response/>
+  </PreFlow>
+
+  <PostFlow name="PostFlow">
+    <Request/>
+    <Response>
+    </Response>
+  </PostFlow>
+
+  <Flows>
+
+    <Flow name="authorize_app">
+      <!--
+
+        The app uses this inbound request to kick off the flow.
+        Example:
+
+        GET "/20181127/oauth2-ac-pkce/authorize?client_id=lq93FiqTw1si09wsocM7AjOBSbyi45iA&redirect_uri=http://dinochiesa.github.io/openid-connect/callback-handler.html&response_type=code&scope=A"
+
+        The response is a 302 redirect to the login-and-consent app. The
+        login-and-consent app is handled by a different proxy endpoint in
+        this same proxy bundle.
+
+      -->
+
+      <Condition>(proxy.pathsuffix MatchesPath "/authorize") and (request.verb = "GET")</Condition>
+      <Description/>
+      <Request>
+        <Step>
+          <Name>RF-InvalidRequest-CodeChallenge</Name>
+          <Condition>(request.queryparam.code_challenge_method != "S256") OR (request.queryparam.code_challenge = null)</Condition>
+        </Step>
+        <Step><Name>OAuthV2-GetInfo</Name></Step>
+        <Step><Name>AM-AuthorizationSession</Name></Step>
+        <Step><Name>CP-AuthorizationSession</Name></Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-RedirectToLoginApp</Name>
+        </Step>
+      </Response>
+    </Flow>
+
+    <Flow name="authorization code">
+      <!--
+          This request is sent by the login-and-consent app to generate
+          an authorization code onn behalf of an authentic user. Example:
+
+          POST /20181127/oauth2-ac-pkce/authcode?sessionid=rrt-006f23e80e7ff6f73-c-ea-25068-1170519-1
+
+            uuid=EA1BA8EB-0A83-46BE-8B05-4C2E827F25B3
+            &motto=If%20this%20isn%27t%20nice%2C%20I%20don%27t%20know%20what%20is.
+            &given_name=Dino
+            &family_name=Chiesa
+            &email=dino%40apigee.com
+            &roles=read%2Cedit%2Cdelete
+            &response_type=code
+
+          -->
+      <Condition>(proxy.pathsuffix MatchesPath "/authcode") and (request.verb = "POST")</Condition>
+      <Description/>
+      <Request>
+        <Step>
+          <Name>CL-AuthorizationSession</Name>
+        </Step>
+        <Step>
+          <Name>RF-BadSession</Name>
+          <Condition>authtx = null</Condition>
+        </Step>
+        <Step>
+          <Name>JS-ImportJsonToContext</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>OAuthV2-GenerateAuthorizationCode</Name>
+        </Step>
+        <Step>
+          <Name>CP-AuthTxForCode</Name>
+        </Step>
+        <Step>
+          <Name>AM-AuthorizationCodeResponse</Name>
+        </Step>
+        <Step>
+          <Name>CI-AuthorizationSession</Name>
+        </Step>
+      </Response>
+    </Flow>
+
+
+    <Flow name="token">
+      <!--
+          The app uses this request to exchange the code for a token.
+          Example:
+
+          POST /devjam3/oauth2-ac/token?
+            grant_type=authorization_code
+            &client_id=wlq93FiqTw1si09wsocM7AjOBSbyi4
+            &client_secret=78djdkdjdkjd
+            &code=q2oI7b2d
+            &code_verifier=xxxxxxx
+            &redirect_uri=http://dinochiesa.github.io/openid-connect/callback-handler.html
+          -->
+      <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST")</Condition>
+      <Description/>
+      <Request>
+
+        <Step>
+          <Name>CL-AuthTxForCode</Name>
+        </Step>
+        <Step>
+          <Name>RF-BadCode</Name>
+          <Condition>authtx = null</Condition>
+        </Step>
+        <Step>
+          <Name>JS-ImportJsonToContext</Name>
+        </Step>
+
+        <!-- check the Code verifier -->
+        <Step><Name>AM-EncodeCodeChallenge</Name></Step>
+        <Step><Name>JS-ConvertBase64ToBase64Url</Name></Step>
+        <Step>
+          <Name>RF-InvalidRequest-CodeChallenge</Name>
+          <Condition>code_challenge = null</Condition>
+        </Step>
+        <Step>
+          <Name>RF-InvalidRequest-BadCodeVerifier</Name>
+          <Condition>authtx_code_challenge != code_challenge</Condition>
+        </Step>
+
+        <Step>
+          <Name>AM-DeleteForwardedHeaders</Name>
+        </Step>
+        <Step>
+          <Name>AM-SetRedirectUri</Name>
+        </Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>OAuthV2-GenerateAccessToken</Name>
+        </Step>
+        <Step>
+          <Name>JS-GroomTokenResponse</Name>
+        </Step>
+        <Step>
+          <Name>CI-AuthTxForCode</Name>
+        </Step>
+      </Response>
+    </Flow>
+
+    <Flow name='unknown request'>
+      <Request>
+        <Step><Name>RF-UnknownRequest</Name></Step>
+      </Request>
+      <Response/>
+    </Flow>
+
+  </Flows>
+
+  <RouteRule name="NoRoute"/>
+
+</ProxyEndpoint>

@@ -1,0 +1,16 @@
+<RaiseFault name='RF-BadCode'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <FaultResponse>
+    <Set>
+      <Payload contentType='application/json'>{
+  "error" : {
+    "code" : 400.19,
+    "message" : "invalid code"
+  }
+}
+</Payload>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+</RaiseFault>

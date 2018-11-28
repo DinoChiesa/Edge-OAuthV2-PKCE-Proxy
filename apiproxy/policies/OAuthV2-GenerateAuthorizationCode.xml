@@ -1,0 +1,43 @@
+<OAuthV2 name="OAuthV2-GenerateAuthorizationCode">
+  <Operation>GenerateAuthorizationCode</Operation>
+  <!--
+      ExpiresIn, in milliseconds. The ref is optional. The explicitly specified
+      value is the default, when the variable reference cannot be resolved.
+      300000 =  5 minutes
+      600000 = 10 minutes
+      1200000 = 20 minutes
+      2400000 = 40 minutes
+      3600000 = 60 minutes
+  -->
+  <ExpiresIn>300000</ExpiresIn>
+  <ClientId>authtx_client_id</ClientId>
+  <RedirectUri>authtx_redirect_uri</RedirectUri>
+  <ResponseType>request.formparam.response_type</ResponseType>
+  <Scope>authtx_req_scope</Scope>
+
+  <!--
+      These attributes get associated to the code+token.
+      They will be available to the api proxy whenever the token is
+      subsequently validated.
+  -->
+  <Attributes>
+    <!-- If set to false, the attribute wont be delivered to the app. -->
+    <Attribute name='user_uuid' ref='request.formparam.uuid' display='false'/>
+    <Attribute name='user_motto' ref='request.formparam.motto' display='false'/>
+    <Attribute name='user_roles' ref='request.formparam.roles' display='false'/>
+    <Attribute name='user_given_name' ref='request.formparam.given_name' display='false'/>
+    <Attribute name='user_family_name' ref='request.formparam.family_name' display='false'/>
+    <Attribute name='user_email' ref='request.formparam.email' display='false'/>
+
+    <!-- for PKCE -->
+    <Attribute name='originating_code_challenge' ref='authtx_code_challenge' display='false'/>
+  </Attributes>
+
+  <!-- result is a context variable:
+
+       oauthv2authcode.OAuthV2-GenerateAuthorizationCode.code
+
+       Need to populate a Location Header which looks something like this:
+       https://dinochiesa.github.io/pkce-redirect/callback-handler.html?code=mRCIMhB6&scope=A
+       -->
+</OAuthV2>

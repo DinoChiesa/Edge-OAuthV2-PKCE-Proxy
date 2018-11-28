@@ -1,0 +1,13 @@
+<PopulateCache name="CP-AuthorizationSession">
+  <DisplayName>Cache Populate: Authorization Session</DisplayName>
+  <CacheResource>cache1</CacheResource>
+  <Scope>Global</Scope>
+  <Source>authorization_session_info</Source>
+  <CacheKey>
+    <Prefix>authz-sess</Prefix>
+    <KeyFragment ref="messageid"/>
+  </CacheKey>
+  <ExpirySettings>
+    <TimeoutInSec>600</TimeoutInSec> <!-- 600 = 10 minutes -->
+  </ExpirySettings>
+</PopulateCache>

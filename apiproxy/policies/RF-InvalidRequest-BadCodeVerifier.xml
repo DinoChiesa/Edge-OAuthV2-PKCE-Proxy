@@ -1,0 +1,16 @@
+<RaiseFault name='RF-InvalidRequest-BadCodeVerifier'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <FaultResponse>
+    <Set>
+      <Payload contentType='application/json'>{
+  "error" : {
+    "code" : 401.14,
+    "message" : "bad code verifier"
+  }
+}
+</Payload>
+      <StatusCode>401</StatusCode>
+      <ReasonPhrase>Unauthorized</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+</RaiseFault>

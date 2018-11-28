@@ -1,0 +1,9 @@
+{
+  "authEndpoint" : "https://ORGNAME-ENVNAME.apigee.net/BASEPATH/oauth2/auth",
+  "sessionApi" : {
+    "endpoint" : "https://ORGNAME-ENVNAME.apigee.net/BASEPATH/session",
+    "apikey" : "APIKEY_HERE"
+  },
+  "localUserDb" : "../config/localUserDb.js",
+  "authSystem" : "local"
+}

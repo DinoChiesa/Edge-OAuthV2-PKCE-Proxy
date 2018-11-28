@@ -1,0 +1,10 @@
+<LookupCache name='CL-AuthTxForCode'>
+  <DisplayName>Cache Lookup: AuthTx for code</DisplayName>
+  <CacheResource>cache1</CacheResource>
+  <Scope>Global</Scope>
+  <AssignTo>authtx</AssignTo>
+  <CacheKey>
+    <Prefix>authz-sess-code</Prefix>
+    <KeyFragment ref='request.formparam.code' />
+  </CacheKey>
+</LookupCache>

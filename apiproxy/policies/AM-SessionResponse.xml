@@ -1,0 +1,8 @@
+<AssignMessage name='AM-SessionResponse'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <Set>
+    <Payload contentType='application/json'>{authtx}</Payload>
+    <StatusCode>200</StatusCode>
+    <ReasonPhrase>OK</ReasonPhrase>
+  </Set>
+</AssignMessage>

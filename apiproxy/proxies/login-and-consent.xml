@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProxyEndpoint name="login">
+  <Description>Proxy for login interactions</Description>
+      <!-- THIS IS A SAMPLE LOGIN interaction.... in a production case
+           this will be an external website. -->
+  <HTTPProxyConnection>
+    <BasePath>/20181127/login-and-consent</BasePath>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+
+  <PreFlow name="PreFlow">
+    <Request/>
+    <Response/>
+  </PreFlow>
+
+  <PostFlow name="PostFlow">
+    <Request/>
+    <Response/>
+  </PostFlow>
+
+  <Flows>
+
+    <Flow name="Login">
+      <!-- just some basic validation for one of the requests handled by
+           this proxy endpoint. -->
+      <Condition>(proxy.pathsuffix MatchesPath "/login") and (request.verb = "GET")</Condition>
+      <Description/>
+      <Request>
+        <Step>
+          <Condition>(request.queryparam.sessionid = null) OR (request.queryparam.sessionid = "")</Condition>
+          <Name>RF-InvalidRequestHtml</Name>
+        </Step>
+      </Request>
+      <Response/>
+    </Flow>
+
+  </Flows>
+
+  <RouteRule name="Login">
+    <TargetEndpoint>login</TargetEndpoint>
+  </RouteRule>
+
+</ProxyEndpoint>

@@ -1,0 +1,12 @@
+<AssignMessage name='AM-AuthorizationCodeResponse'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <Set>
+    <Headers>
+      <Header
+          name='Location'>{authtx_redirect_uri}?code={oauthv2authcode.OAuthV2-GenerateAuthorizationCode.code}&amp;scope={authtx_req_scope}</Header>
+    </Headers>
+    <Payload/>
+    <StatusCode>302</StatusCode>
+    <ReasonPhrase>Found</ReasonPhrase>
+  </Set>
+</AssignMessage>

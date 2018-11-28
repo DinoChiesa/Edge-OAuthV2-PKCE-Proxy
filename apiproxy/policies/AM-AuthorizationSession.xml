@@ -1,0 +1,17 @@
+<AssignMessage name="AM-AuthorizationSession">
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>authorization_session_info</Name>
+    <Template>{
+  "client_id"      : "{request.queryparam.client_id}",
+  "response_type"  : "{request.queryparam.response_type}",
+  "appName"        : "{apigee.developer.app.name}",
+  "devEmail"       : "{apigee.developer.email}",
+  "redirect_uri"   : "{request.queryparam.redirect_uri}",
+  "nonce"          : "{request.queryparam.nonce}",
+  "req_state"      : "{request.queryparam.state}",
+  "req_scope"      : "{request.queryparam.scope}",
+  "code_challenge" : "{request.queryparam.code_challenge}"
+}</Template>
+  </AssignVariable>
+</AssignMessage>

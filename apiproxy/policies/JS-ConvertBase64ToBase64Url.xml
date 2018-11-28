@@ -1,0 +1,6 @@
+<Javascript name='JS-ConvertBase64ToBase64Url' timeLimit='200' >
+  <Properties>
+    <Property name='source'>code_challenge</Property>
+  </Properties>
+  <ResourceURL>jsc://convertBase64ToBase64Url.js</ResourceURL>
+</Javascript>

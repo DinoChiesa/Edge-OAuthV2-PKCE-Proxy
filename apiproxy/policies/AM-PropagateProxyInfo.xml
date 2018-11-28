@@ -1,0 +1,10 @@
+<AssignMessage name="AM-PropagateProxyInfo">
+  <Set>
+    <Headers>
+      <Header name="x-client-scheme">{client.scheme}</Header>
+      <Header name='x-proxy-basepath'>{proxy.basepath}</Header>
+      <Header name='x-external-host'>{request.header.host}</Header>
+    </Headers>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>

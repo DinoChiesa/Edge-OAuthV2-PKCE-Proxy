@@ -1,0 +1,19 @@
+<APIProxy revision="1" name="oauth2-ac-pkce">
+    <ConfigurationVersion majorVersion="4" minorVersion="0"/>
+    <CreatedAt>1408619365530</CreatedAt>
+    <CreatedBy>dchiesa@google.com</CreatedBy>
+    <Description>Proxy that dispenses tokens via Authorization Code grant w/PKCE</Description>
+    <DisplayName>oauth2-ac-pkce</DisplayName>
+    <LastModifiedAt>1491340472040</LastModifiedAt>
+    <LastModifiedBy>dchiesa@google.com</LastModifiedBy>
+    <Policies/>
+    <ProxyEndpoints>
+        <ProxyEndpoint>default</ProxyEndpoint>
+    </ProxyEndpoints>
+    <Resources/>
+    <Spec></Spec>
+    <TargetServers/>
+    <TargetEndpoints>
+        <TargetEndpoint>default</TargetEndpoint>
+    </TargetEndpoints>
+</APIProxy>

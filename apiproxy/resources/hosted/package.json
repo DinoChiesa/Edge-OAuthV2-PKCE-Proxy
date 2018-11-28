@@ -1,0 +1,20 @@
+{
+  "name": "login-and-consent-server-node",
+  "version": "0.1.2",
+  "main": "login-and-consent.js",
+  "author": "Dino Chiesa <dchiesa@google.com>",
+  "description": "a sample login-and-consent application for 3-legged OAuth",
+  "scripts": {
+    "start": "node login-and-consent.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "ejs": "2.5.5",
+    "express": "^4.16.3",
+    "morgan": "^1.9.1",
+    "querystring": "~0.2.0",
+    "request": "^2.87.0"
+  }
+}

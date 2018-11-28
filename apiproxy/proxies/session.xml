@@ -1,0 +1,77 @@
+<ProxyEndpoint name='session'>
+  <Description>Proxy Endpoint to handle OAuth 2.0 session info</Description>
+  <HTTPProxyConnection>
+    <BasePath>/20181127/oauth2-session</BasePath>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules>
+    <FaultRule name='unhandled-fault'>
+      <!-- This FaultRule always catches all uncaught faults. -->
+      <Step>
+        <Name>JS-MaybeFormatFault</Name>
+      </Step>
+    </FaultRule>
+  </FaultRules>
+
+  <PreFlow name='PreFlow'>
+    <Request>
+      <!--
+          If you want to restrict callers to this API:
+            <Step><Name>VerifyApiKey-1</Name></Step>
+        -->
+    </Request>
+      <Response/>
+  </PreFlow>
+  <PostFlow name='PostFlow'>
+      <Request/>
+      <Response>
+        <Step><Name>AM-CleanResponseHeaders</Name></Step>
+      </Response>
+  </PostFlow>
+
+  <Flows>
+    <Flow name='Authorization session info'>
+      <!--
+          This endpoint allows the login-and-consent app to inquire as
+          to the metadata around user attempting to authenticate.
+          Basically, the login app calls in with a session id, and
+          receives in response: the app name, the developer name, the
+          requested scopes, and so on. Example request:
+
+          GET /BASEPATH/oauth2-session/info?sessionid=rrt-006f23e80e7ff6f73-c-ea-25068-1170519-1
+
+          -->
+      <Description>Retrieve info regarding an existing authorization session</Description>
+      <Request>
+        <Step>
+          <Name>RF-InvalidRequest</Name>
+          <Condition>request.queryparam.sessionid = null</Condition>
+        </Step>
+        <Step><Name>CL-AuthorizationSession</Name></Step>
+      </Request>
+      <Response>
+        <Step>
+          <Name>AM-SessionResponse</Name>
+          <Condition>authtx != null</Condition>
+        </Step>
+        <Step>
+          <Name>AM-NoResponse</Name>
+          <Condition>authtx = null</Condition>
+        </Step>
+      </Response>
+      <Condition>(proxy.pathsuffix MatchesPath "/info") and (request.verb = "GET")</Condition>
+    </Flow>
+
+    <Flow name='unknown request'>
+      <Request>
+        <Step><Name>RF-UnknownRequest</Name></Step>
+      </Request>
+      <Response/>
+    </Flow>
+
+  </Flows>
+
+  <RouteRule name='NoRouteRule'/>
+
+</ProxyEndpoint>

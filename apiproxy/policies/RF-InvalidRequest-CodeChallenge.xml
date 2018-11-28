@@ -1,0 +1,16 @@
+<RaiseFault name='RF-InvalidRequest-CodeChallenge'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <FaultResponse>
+    <Set>
+      <Payload contentType='application/json'>{
+  "error" : {
+    "code" : 400.17,
+    "message" : "missing or invalid query parameter: code_challenge_method or code_challenge"
+  }
+}
+</Payload>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+</RaiseFault>

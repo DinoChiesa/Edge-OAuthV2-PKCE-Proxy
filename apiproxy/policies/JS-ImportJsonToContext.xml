@@ -1,0 +1,6 @@
+<Javascript name='JS-ImportJsonToContext' timeLimit='200' >
+  <Properties>
+    <Property name='varname'>authtx</Property>
+  </Properties>
+  <ResourceURL>jsc://importJsonToContext.js</ResourceURL>
+</Javascript>

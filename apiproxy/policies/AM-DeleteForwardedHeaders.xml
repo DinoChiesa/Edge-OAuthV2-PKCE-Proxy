@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AssignMessage name="AM-DeleteForwardedHeaders">
+    <Remove>
+        <Headers>
+            <Header name="Content-Type" />
+        </Headers>
+    </Remove>
+    <Add>
+        <Headers>
+            <Header name="Content-Type">application/x-www-form-urlencoded</Header>
+        </Headers>
+    </Add>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+    <AssignTo createNew="false" transport="http" type="response" />
+</AssignMessage>

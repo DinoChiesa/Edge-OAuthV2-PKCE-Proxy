@@ -1,0 +1,6 @@
+<AssignMessage name="AM-EncodeCodeChallenge">
+  <AssignVariable>
+    <Name>code_challenge</Name>
+    <Template>{sha256Base64(request.formparam.code_verifier)}</Template>
+  </AssignVariable>
+</AssignMessage>

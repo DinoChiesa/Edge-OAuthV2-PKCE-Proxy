@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<TargetEndpoint name="login">
+    <Description/>
+    <FaultRules/>
+    <PreFlow name="PreFlow">
+      <Request>
+        <Step>
+          <Name>AM-PropagateProxyInfo</Name>
+        </Step>
+      </Request>
+        <Response/>
+    </PreFlow>
+    <PostFlow name="PostFlow">
+        <Request/>
+        <Response/>
+    </PostFlow>
+    <Flows/>
+
+  <HostedTarget/>
+<!--
+  <ScriptTarget>
+      <ResourceURL>node://login-and-consent.js</ResourceURL>
+      <EnvironmentVariables>
+          <EnvironmentVariable name="NAME">VALUE</EnvironmentVariable>
+      </EnvironmentVariables>
+      <Arguments>
+          <Argument>ARG</Argument>
+      </Arguments>
+  </ScriptTarget>
+-->
+
+</TargetEndpoint>

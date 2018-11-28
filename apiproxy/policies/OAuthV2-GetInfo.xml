@@ -1,0 +1,19 @@
+<GetOAuthV2Info name='OAuthV2-GetInfo'>
+    <!--
+    See http://apigee.com/docs/api-services/reference/get-oauth-v2-info-policy
+
+    Use one of the following forms: a referenced variable or
+    an explicitly passed client_id.
+     -->
+    <ClientId ref='request.queryparam.client_id'/>
+    <!--
+    On Success, the following flow variables will be set.
+      oauthv2client.##.client_id
+      oauthv2client.##.client_secret
+      oauthv2client.##.redirection_uris
+      oauthv2client.##.developer.email
+      oauthv2client.##.developer.app.name
+      oauthv2client.##.developer.id
+      oauthv2client.##.{custom_attribute_name}
+    -->
+</GetOAuthV2Info>

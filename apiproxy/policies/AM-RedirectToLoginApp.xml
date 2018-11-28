@@ -1,0 +1,22 @@
+<AssignMessage name="AM-RedirectToLoginApp">
+  <Remove>
+    <Headers/>
+  </Remove>
+  <Set>
+    <Headers>
+      <!--
+          this redirects to a login and consent app. This app happens to be hosted
+          within this api proxy bundle.  For demo purposes only.
+      -->
+      <Header name="Location">
+        {client.scheme}://{request.header.Host}{proxy.basepath}/../login-and-consent/login?sessionid={messageid}
+      </Header>
+    </Headers>
+    <Payload contentType="text/plain">{client.scheme}://{request.header.Host}{proxy.basepath}/../login-and-consent/login?sessionid={messageid}</Payload>
+    <StatusCode>302</StatusCode>
+    <ReasonPhrase>Found</ReasonPhrase>
+  </Set>
+
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo createNew="false" transport="http" type="response" />
+</AssignMessage>

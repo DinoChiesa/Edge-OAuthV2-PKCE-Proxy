@@ -1,0 +1,6 @@
+<AssignMessage name="AM-SetRedirectUri">
+  <AssignVariable>
+    <Name>request.formparam.redirect_uri</Name>
+    <Ref>authtx_redirect_uri</Ref>
+  </AssignVariable>
+</AssignMessage>

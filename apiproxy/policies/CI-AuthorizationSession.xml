@@ -1,0 +1,8 @@
+<InvalidateCache name='CI-AuthorizationSession'>
+  <CacheResource>cache1</CacheResource>
+  <Scope>Global</Scope>
+  <CacheKey>
+    <Prefix>authz-sess</Prefix>
+    <KeyFragment ref='request.queryparam.sessionid' />
+  </CacheKey>
+</InvalidateCache>

@@ -1,0 +1,11 @@
+<RaiseFault name="RF-InvalidRequestHtml">
+  <FaultResponse>
+    <Set>
+      <Headers/>
+            <Payload contentType="text/html"><html><body><h1>Invalid Request</h1><p>That request was invalid</p></body></html></Payload>
+            <StatusCode>400</StatusCode>
+            <ReasonPhrase>Bad Request</ReasonPhrase>
+        </Set>
+    </FaultResponse>
+    <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</RaiseFault>
