@@ -26,7 +26,7 @@ This example is not an official Google product, nor is it part of an official Go
 ## The Basics of the Code Verifier and Challenge
 
 According to RFC7636, the PKCE verifier is a string of random characters, from
-43 to 128 characters in length.  Why? I don't know, that's what the spec says.
+43 to 128 characters in length.
 
 The challenge is `BASE64URL(SHA256(code_verifier))`.
 In other words it is a shorter string representing the SHA256 of the verifier.
@@ -35,8 +35,8 @@ Maybe this is obvious, but: the two strings are different. You must compute the
 challenge from the verifier. It is not possible to compute the verifier from the
 challenge.
 
-In the /authorize call, the client passes the CHALLENGE.
-When exchanging the code for a token, the client passes the VERIFIER.
+In the `GET /authorize` call, the client passes the CHALLENGE.
+When exchanging the code for a token (`POST /token`), the client passes the VERIFIER.
 
 The idea is that only the bonafide client would have the random verifier that
 matches the challenge. This avoids risk of interception of the code in transit.
@@ -46,9 +46,9 @@ matches the challenge. This avoids risk of interception of the code in transit.
 
 Before exercising this demonstration, you need to:
 
-1. deploy the OAuthV2 token-dispensing proxy bundle.
+1. Deploy the OAuthV2 token-dispensing proxy bundle.
 
-2. create a cache named 'cache1' in your environment.
+2. Create a cache named 'cache1' in your environment.
 
 3. Create an API Product, it can allow access to any OTHER api proxy.  The product should have scopes: A,B,C.
 
@@ -73,7 +73,7 @@ node ./provisionAssets.js -v -o MyORG -e test
 
 Once the pre-requisites are provisioned in your Apigee Edge organization, you can exercise the example. To do that you need to invoke the /authorize endpoint. This is the standard way to start a 3-legged OAuth token acquisition.
 
-From the command line, you could do it like this: 
+From the command line, you could do it like this:
 
 ```
 ORG=MyORG
@@ -127,7 +127,7 @@ If you don't want to use the command line, there is [a helper web
 page](https://dinochiesa.github.io/pkce-redirect/pkce-link-builder.html) to
 assist you in building the /authorize URL.  Fill in the form with the
 appropriate values for your org, env, app etc.  The helper will automatically
-generate a random verifier and a challenge.  Once you get the URL, right click
+generate a random verifier and the matching challenge.  Once you get the URL, right click
 it and open the page in a new tab. (keep the helper tab open separately)
 
 Nothing like the helper will ever be seen by a real user. This is just a
@@ -143,7 +143,12 @@ If you want to examine what the API Proxy is doing, now is a good time to enable
 
 Paste the resulting /authorize URL into a browser tab. (or if using the helper, right-click the constructed URL to open in a new tab)
 
-Invoking the URL for the /authorize request will redirect you to a URL for the login-and-consent app.  You need to open the resulting link in a browser and authenticate.
+Invoking the URL for the /authorize request will redirect you to a URL for the
+login-and-consent app. If you invoke the /authorize endpoint from the command
+line you will see a 302 response with a Location header. You need to open the
+resulting link in a browser and authenticate. If you paste the /authorize URL
+into a browser, it will automatically follow the 302 redirect.
+
 
 The login-and-consent app uses a mock user database; these are the valid username / password pairs:
 * dino@apigee.com / IloveAPIs
@@ -175,9 +180,74 @@ When you invoke the /token request, if the code is invalid, or if the code
 verifier does not match the challenge you used to obtain the code, the token
 request will return 401.
 
+
+## How does it work?
+
+There are three "proxy endpoints" in the proxy bundle here.
+
+1. *oauthv2* - responsible for sending a redirect for the initial request to
+/authorize, and for generating authorization codes, and generating access
+tokens.
+
+2. *session* - responsible for sharing session information about in-flight
+3-legged token "conversations". The login server invokes this to find out about
+the client app.
+
+3. *login* - additional endpoint, just used for this demonstration. this actually
+hosts a full nodejs app. It's bundled here only for simplicity. Normally the
+login and consent app is a self-standing app. Remember, the /authorize flow just
+redirects to the login app.
+
+
+Here's a breakdown of how it works.
+
+1. The first request in an authorization code grant flow is `GET /authorize`.
+   The API Proxy creates a session blob, containing information like the
+   client_id, the app name, the scope, and so on. For PKCE, this session also
+   stores the CODE_CHALLENGE. It stores this session blob in the in-memory cache for
+   Apigee Edge, using the session id as the cache key. The session id here is
+   just the "message id", which is a unique string for every request handled by
+   an Apigee Edge API proxy; it's available in a context variable called
+   `messageid`.
+
+   The flow then redirects to the login server. This login server can run anywhere;
+   it just happens that it runs in the proxy bundle, but that's not required.  The
+   login-and-consent app it needs to know about the /session endpoint on the proxy
+   bundle, so it can inquire about the client app, the scope requested, and so on.
+
+2. The user interacts with the login-and-consent app. The login interaction
+   verifies the user identity; in this example it uses a mock user
+   database. After the user is authenticated the login-and-consent app gets the
+   information about the session - the client id and the app name and the
+   scopes, and the redirect URI. This is required in order to present the
+   consent screen. After the user grants consent, the login-and-consent app then
+   invokes the /authcode flow on the oauth endpoint in the API Proxy. This
+   generates an Authorization Code, per RFC 6749. At this point the proxy stores
+   the same session in cache with a different key: the authorization code. This
+   allows later retrieval (see the next step) when the app wants to exchange the
+   code for a token. The login-and-consent app then redirects the web page to
+   the registered URL. In this example the URL is just a web page that displays
+   the code.
+
+3. The client then performs a `POST /token` to exchange the code and the
+   verifier for a token. The OAuth proxy endpoint handles this request. Using
+   the code, it retrieves the cached session. It then computes the SHA256 of the
+   CODE_VERIFIER, and compares that to the stored CODE_CHALLENGE. IF they match,
+   all good. If not, no token.
+
+So this PKCE proxy is really a smple elaboration of the basic Authorization Code
+grant flow, with the addition of checking the challenge and verifier, relying on
+the Apigee Edge cache for that purpose.  The TTL for cached session is tunable
+of course; I set it to 10 minutes to allow delays during demonstrations. It
+makes sense to make that TTL shorter in a production system. 60-90 seconds ought
+to be enough. It's got to be long enough to accommodate the user login and
+consent. That should take 15 seconds or so normally, but one could imagine a
+longer period in exceptional circumstances.
+
+
 ## Teardown
 
-If you want to remove all the assets that were provisioned by the tool, do this:
+If you want to remove all the assets that were provisioned by the tool for this example, do this:
 
 ```
 node ./provisionAssets.js -v -o gaccelerate3 -e test -R
