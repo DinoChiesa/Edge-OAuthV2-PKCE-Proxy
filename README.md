@@ -65,7 +65,7 @@ Fortunately, there are command-line helper tools that do this work for you. To u
 cd tool
 npm install
 node ./importAndDeploy.js -v -o MyORG -e test -d ..
-node ./provisionAssets.js -v -o MyORG -e test
+node ./provision.js -v -o MyORG -e test
 ```
 
 
@@ -250,7 +250,7 @@ longer period in exceptional circumstances.
 If you want to remove all the assets that were provisioned by the tool for this example, do this:
 
 ```
-node ./provisionAssets.js -v -o gaccelerate3 -e test -R
+node ./provision.js -v -o gaccelerate3 -e test -R
 
 ```
 

@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "crypto-js": "^3.1.9-1",
-    "apigee-edge-js": "^0.3.15",
+    "apigee-edge-js": "^0.4.2",
     "sprintf-js": "^1.1.1",
     "node-getopt": "^0.3.1"
   },
