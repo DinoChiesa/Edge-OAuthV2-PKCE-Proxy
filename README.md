@@ -84,7 +84,7 @@ redirect_uri=https://dinochiesa.github.io/pkce-redirect/callback-handler.html
 code_verifier=SOME_RANDOM_STRING_OF_CHARACTERS_OF_SUFFIcienT_LENGTH
 code_challenge=BASE64URL(SHA256(code_verifier))
 
-curl -i -X GET "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=A&code_challenge=${code_challenge}code_challenge_method=S256"
+curl -i -X GET "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=A&code_challenge=${code_challenge}&code_challenge_method=S256"
 ```
 
 Breaking that request down, here are the query params.
