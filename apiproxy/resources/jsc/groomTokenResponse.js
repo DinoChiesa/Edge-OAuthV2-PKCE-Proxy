@@ -1,37 +1,47 @@
 // groomTokenResponse.js
 // ------------------------------------------------------------------
-
-/* jshint esversion: 6, node: true */
+/* jshint esversion:6, node:false, strict:implied */
 /* global response, context */
 
-'use strict';
-
-var b1 = JSON.parse(response.content),
-    propertiesToKeep = ['access_token',
-                        'refresh_token',
-                        'scope'],
+var origResponse = JSON.parse(response.content),
     userProperties = ['user_given_name',
                         'user_family_name',
                         'user_uuid',
                         'user_email'],
-    newToken = {};
+    newResponse = {
+      token_type : 'Bearer'
+    };
 
-if (b1.access_token) {
-  propertiesToKeep.forEach(function(key){
-    newToken[key] = b1[key];
+if (origResponse.access_token) {
+  ['access_token', 'refresh_token', 'scope'].forEach(function(key) {
+    newResponse[key] = origResponse[key];
   });
-  if (b1.expires_in) {
-    newToken.expires_in = parseInt(b1.expires_in, 10);
+
+  // Only if there is a refresh token, keep properties related to it:
+  if (origResponse.refresh_token) {
+    newResponse.refresh_token_expires_in = origResponse.refresh_token_expires_in;
+    newResponse.refresh_count = origResponse.refresh_count;
   }
-  if (b1.issued_at) {
-    newToken.issued_at = parseInt(b1.issued_at, 10);
-  }
+
+  // convert String(ms-since-epoch) to Number(seconds-since-epoch)
+  ['issued_at', 'refresh_token_issued_at'].forEach(function convertIssuedAt(prop) {
+    if (origResponse[prop]) {
+      newResponse[prop] = Math.floor(parseInt(origResponse[prop], 10) / 1000);
+    }
+  });
+
+  // convert expires_in to Number(expires_in)
+  ['expires_in', 'refresh_token_expires_in'].forEach(function convertExpires(prop){
+    if (origResponse[prop]) {
+      newResponse[prop] = parseInt(origResponse[prop], 10);
+    }
+  });
 
   var user = {};
   userProperties.forEach(function(key){
-    user[key.replace(/^user_/, '')] = b1[key];
+    user[key.replace(/^user_/, '')] = origResponse[key];
   });
-  newToken.user = user;
+  newResponse.user = user;
 
-  context.setVariable('response.content', JSON.stringify(newToken, null, 2));
+  context.setVariable('response.content', JSON.stringify(newResponse, null, 2));
 }

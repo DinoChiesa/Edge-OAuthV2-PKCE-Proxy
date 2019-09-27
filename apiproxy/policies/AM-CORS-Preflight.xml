@@ -1,0 +1,13 @@
+<AssignMessage name="AM-CORS-Preflight">
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <AssignTo>response</AssignTo>
+  <Set>
+    <Headers>
+      <Header name="Access-Control-Allow-Origin">{request.header.origin}</Header>
+      <Header name='Access-Control-Allow-Methods'>POST, GET, OPTIONS</Header>
+      <Header name='Access-Control-Allow-Headers'>Accept, Content-Type, connection, content-length, Authorization</Header>
+      <Header name='Access-Control-Allow-Credentials'>true</Header>
+    </Headers>
+    <StatusCode>200</StatusCode>
+  </Set>
+</AssignMessage>

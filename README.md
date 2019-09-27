@@ -31,7 +31,7 @@ According to RFC7636, the PKCE verifier is a string of random characters, from
 The challenge is `BASE64URL(SHA256(code_verifier))`.
 In other words it is a shorter string representing the SHA256 of the verifier.
 
-Maybe this is obvious, but: the two strings are different. You must compute the
+This should be obvious: the two strings are different. You must compute the
 challenge from the verifier. It is not possible to compute the verifier from the
 challenge.
 
@@ -54,7 +54,7 @@ Before exercising this demonstration, you need to:
 
 4. Create a developer
 
-5. Create a developer app, attached to that developer, and authorized for the previously created product. 
+5. Create a developer app, attached to that developer, and authorized for the previously created product.
    The app should have a redirect_uri of https://dinochiesa.github.io/pkce-redirect/callback-handler.html
    Retain the client_id and client_secret of the developer app.
 
@@ -62,10 +62,12 @@ Before exercising this demonstration, you need to:
 Fortunately, there are command-line helper tools that do this work for you. To use them, you need node and npm.
 
 ```
-cd tool
+cd tools
 npm install
-node ./importAndDeploy.js -v -o MyORG -e test -d ..
-node ./provision.js -v -o MyORG -e test
+ORG=MyORG
+ENV=myenv
+node ./importAndDeploy.js -v -o $ORG -e $ENV -d ..
+node ./provision.js -v -o $ORG -e $ENV
 ```
 
 
@@ -81,7 +83,7 @@ ENV=myenv
 client_id=whatever
 client_secret=whatever
 redirect_uri=https://dinochiesa.github.io/pkce-redirect/callback-handler.html
-code_verifier=SOME_RANDOM_STRING_OF_CHARACTERS_OF_SUFFIcienT_LENGTH
+code_verifier=SOME_RANDOM_STRING_OF_CHARACTERS_OF_SUFFICIENT_LENGTH
 code_challenge=BASE64URL(SHA256(code_verifier))
 
 curl -i -X GET "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=A&code_challenge=${code_challenge}&code_challenge_method=S256"
@@ -98,18 +100,89 @@ Breaking that request down, here are the query params.
 | code_challenge        | the [code challenge](https://tools.ietf.org/html/rfc7636#section-4.1) as described by RFC 7636. |
 | code_challenge_method | the code challenge method. For calls to this proxy, must always have the value S256.            |
 
-## Command-line tools
+## Provision the assets with the Command-line tool
 
-If you want to invoke the API from the command line, you can create a code
-verifier and compute the code challenge using the accompanying tool,
-[contriveProofKey.js](./tools/contriveProofKey.js).  This tool just generates a
+The provision.js tool checks for or creates the cache, product, developer and app,
+and then emits a few lines that you can copy/paste to set shell variables. The
+final output of that tool looks like this:
+```
+ORG=gaccelerate3
+ENV=test
+client_id=LadBY5r7wscxF4MXftAvAL9OBQ3j4D1G
+client_secret=Kh56uyE5GrujzCQs
+redirect_uri=https://dinochiesa.github.io/pkce-redirect/callback-handler.html
+code_verifier=j2lfhcgv8y0eld7rztsxwilfkovtqnn8laclgtze73qqxi8bjxu8lbp1xpqzpkfrllt25nu99jz1fc1zrwx1920fazbdxk1ot3zp493276pz9751n9a2eduqqjys
+code_challenge=_em6TflF_a7HvzptwpKdAz_R9SPRvzBbUCvZuwfDWo4
+```
+
+
+If you want to examine what the API Proxy is doing, now is a good time to enable
+tracing on the proxy.  Do that within the Apigee Admin UI. The proxy name is:
+`oauth2-ac-pkce`.
+
+
+## Initiate the flow from a Terminal
+
+If you want to invoke the API from the terminal, you can copy/paste those
+lines and then invoke the curl command as shown above:
+```
+curl -i -X GET "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=A&code_challenge=${code_challenge}&code_challenge_method=S256"
+```
+
+This will initiate the flow and return you a URL that will allow the user to
+login. You need to copy THAT and paste it into a browser bar to get the
+login-and-consent user experience.
+
+The login-and-consent app uses a mock user database; these are the valid username / password pairs:
+* dino@apigee.com / IloveAPIs
+* valerie@example.com / Wizard123
+* heidi@example.com / 1Performance
+* greg@example.com / Memento4Quiet
+* naimish@example.com / Imagine4
+
+
+After consent, you will then receive a code in the browser page.
+
+## To Exchange the code and verifier for a token
+
+Copy the code shown in the redirect_uri web page, then paste it into a request like so:
+
+```
+CODE=authorization_code
+curl -i -X POST "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/token" \
+   -u ${client_id}:${client_secret} \
+   -d "grant_type=authorization_code&code=${CODE}&code_verifier=${code_verifier}"
+```
+
+This will then show you the token response. It looks like this:
+```
+{
+  "token_type": "Bearer",
+  "access_token": "xJC3RTRCu5tpvIDhtTGBRIINZCav",
+  "refresh_token": "EOX49jT2SAAdeT1Y6oqreoqoewWDud8N",
+  "scope": "A",
+  "refresh_token_expires_in": 0,
+  "refresh_count": "0",
+  "issued_at": 1569606383,
+  "refresh_token_issued_at": 1569606383,
+  "expires_in": 3599,
+  "user": {
+    "given_name": "Dino",
+    "family_name": "Chiesa",
+    "uuid": "EA1BA8EB-0A83-46BE-8B05-4C2E827F25B3",
+    "email": "dino@apigee.com"
+  }
+}
+```
+
+
+If you want to run the experience again, you can create a new code
+verifier and the corresponding code challenge using a specific tool,
+[contriveProofKey.js](./tools/contriveProofKey.js). This tool just generates a
 random string and then computes a SHA256 hash of it.
-
-You need node and npm installed, in order to use this tool.
 
 ```js
 cd tools
-npm install
 node ./contriveProofKey.js
 ```
 
@@ -120,15 +193,20 @@ code_verifier=H51JplDGBt55sQCvnVOY5252vczj55565649oy48EKfZXtmMsRWsPAXhjUpeVltQpZ
 code_challenge=a_Azw48swzMP8Y3AXufd7qPQ1abMyn_3S_deGuvXBbY
 ```
 
+Copy/paste those lines directly in the terminal to set the appropriate
+environment variables. Then, Initiate the login flow again as described above.
 
-## The Web Helper!
+
+## The Web Helper
 
 If you don't want to use the command line, there is [a helper web
 page](https://dinochiesa.github.io/pkce-redirect/pkce-link-builder.html) to
-assist you in building the /authorize URL.  Fill in the form with the
-appropriate values for your org, env, app etc.  The helper will automatically
-generate a random verifier and the matching challenge.  Once you get the URL, right click
-it and open the page in a new tab. (keep the helper tab open separately)
+assist you in building the /authorize URL and kicking things off.
+
+To use it, fill in the form with the appropriate values for your org, env, app
+etc. The helper will automatically generate a random verifier and the matching
+challenge. Once you get the URL, right click it and open the page in a new
+tab. (keep the helper tab open separately)
 
 Nothing like the helper will ever be seen by a real user. This is just a
 development-time tool, useful for demonstrating and exercising the token
@@ -138,10 +216,8 @@ generated by the helper, into its own code.
 
 ## Invoke the URL
 
-If you want to examine what the API Proxy is doing, now is a good time to enable tracing on the proxy.  The proxy name is:
-`oauth2-ac-pkce`.
-
-Paste the resulting /authorize URL into a browser tab. (or if using the helper, right-click the constructed URL to open in a new tab)
+Paste the resulting /authorize URL into a browser tab. (or if using the helper,
+right-click the constructed URL to open in a new tab)
 
 Invoking the URL for the /authorize request will redirect you to a URL for the
 login-and-consent app. If you invoke the /authorize endpoint from the command
@@ -149,34 +225,24 @@ line you will see a 302 response with a Location header. You need to open the
 resulting link in a browser and authenticate. If you paste the /authorize URL
 into a browser, it will automatically follow the 302 redirect.
 
-
-The login-and-consent app uses a mock user database; these are the valid username / password pairs:
-* dino@apigee.com / IloveAPIs
-* valerie@example.com / Wizard123
-* heidi@example.com / 1Performance
-* greg@example.com / Memento4Quiet
-* naimish@example.com / Imagine4
-
-
 Once you authenticate and grant consent, you will receive a code via the redirect_uri.
 
 
 ## To Exchange the code and verifier for a token
 
-Copy the code shown in the redirect_uri web page, then paste it into a request like so:
+Copy the code shown in the redirect_uri web page.
 
-```
-curl -i -X POST "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/token" \
-   -u ${client_id}:${client_secret} \
-   -d 'grant_type=authorization_code&code=${authorization_code}&code_verifier=XXXX'
-```
-
-Or, you can return to the helper page and paste in the code in the appropriate
-box at the bottom of the form. The helper page will generate the CURL request
+Return to the helper page and paste in the code in the appropriate
+box at the bottom of the form. The helper page will generate the cURL request
 that allows you to redeem the code for a token. Paste in the code and press TAB
 to get the URL to appear.
 
-When you invoke the /token request, if the code is invalid, or if the code
+You can then copy that command to run it from the terminal, or click the Redeem
+button to invoke the appropriate command from the browser itself.
+
+When you invoke the /token request, You should see a valid token.
+
+If the code is invalid, or if it has expired, or if the code
 verifier does not match the challenge you used to obtain the code, the token
 request will return 401.
 
@@ -232,14 +298,14 @@ Here's a breakdown of how it works.
 3. The client then performs a `POST /token` to exchange the code and the
    verifier for a token. The OAuth proxy endpoint handles this request. Using
    the code, it retrieves the cached session. It then computes the SHA256 of the
-   CODE_VERIFIER, and compares that to the stored CODE_CHALLENGE. IF they match,
+   CODE_VERIFIER, and compares that to the stored CODE_CHALLENGE. If they match,
    all good. If not, no token.
 
 So this PKCE proxy is really a smple elaboration of the basic Authorization Code
 grant flow, with the addition of checking the challenge and verifier, relying on
 the Apigee Edge cache for that purpose.  The TTL for cached session is tunable
 of course; I set it to 10 minutes to allow delays during demonstrations. It
-makes sense to make that TTL shorter in a production system. 60-90 seconds ought
+makes sense to make that TTL shorter in a production system. 60-180 seconds ought
 to be enough. It's got to be long enough to accommodate the user login and
 consent. That should take 15 seconds or so normally, but one could imagine a
 longer period in exceptional circumstances.
@@ -265,12 +331,11 @@ is no service-level guarantee for responses to inquiries regarding this example.
 
 ## License
 
-This material is copyright 2018 Google LLC.
+This material is copyright 2018-2019 Google LLC.
 and is licensed under the [Apache 2.0 License](LICENSE).
 
 
 ## Bugs
 
-* The /token request is not CORS compliant, so redeeming the code for a token from the helper page does not work.
-  (Must use curl).
+??
 
