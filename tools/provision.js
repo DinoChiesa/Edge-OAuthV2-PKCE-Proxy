@@ -23,7 +23,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2019-September-27 10:49:09>
+// last saved: <2020-June-26 10:37:22>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -170,7 +170,7 @@ apigeeEdge.connect(connectOptions)
         console.log(sprintf('\n\nORG=%s', opt.options.org));
         console.log(sprintf('ENV=%s', opt.options.env));
         console.log(sprintf('client_id=%s', result.credentials[0].consumerKey));
-        console.log(sprintf('client_secret=%s', result.credentials[0].consumerSecret));
+        //console.log(sprintf('client_secret=%s', result.credentials[0].consumerSecret));
         console.log(sprintf('redirect_uri=%s', constants.callbackUrl));
         let codeVerifier = pkceCodeVerifier();
         console.log(sprintf('code_verifier=%s', codeVerifier));

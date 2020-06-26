@@ -39,6 +39,7 @@
 //
 // created: Wed Apr 22 12:47:26 2015
 // last saved: <2017-March-20 13:52:50>
+/* jshint esversion:9, node:true, strict:implied */
 
 (function (){
   var internal = {
@@ -173,7 +174,7 @@
         },
         // Full iso8601-compliant Date/Time with TZ offset
         c: function() {
-          return dateFormat(d,"Y-m-d\\TH:i:sP");
+          return dateFormat(this,"Y-m-d\\TH:i:sP");
         },
         r: function() {
           return this.toString();

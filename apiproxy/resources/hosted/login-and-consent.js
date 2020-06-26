@@ -1,16 +1,18 @@
 // login-and-consent.js
 // ------------------------------------------------------------------
-/* jshint esversion: 6, node: true, strict:false, camelcase:false */
-/* global process, console, Buffer */
+/* jshint esversion: 9, node: true, strict:implied, camelcase:false */
+/* global process, console, Buffer, URL */
+
+// This requires node >=10 in order to run.
 
 //
 // created: Mon Apr  3 21:02:40 2017
-// last saved: <2018-November-27 12:43:14>
+// last saved: <2020-June-26 15:03:54>
 //
 // ------------------------------------------------------------------
 //
 // A node app that implements an authentication and consent-granting web
-// app. This thing implements what is known in the OAuth docs as the
+// app. This thing implements what is known in the OAuth documentation as the
 // Authorization Server. This app uses jade for view rendering, and
 // bootstrap CSS in the HTML pages, but those details are irrelevant for
 // its main purpose.
@@ -23,23 +25,21 @@
 //
 // ------------------------------------------------------------------
 
-var express = require('express'),
-    bodyParser = require('body-parser'),
-    querystring = require('querystring'),
-    morgan = require('morgan'), // a logger
-    request = require('request'),
-    path = require('path'),
-    url = require('url'),
-    app = express(),
-    config = require('./config/config.json'),
-    userAuth = require('./lib/userAuthentication.js'),
-    httpPort;
+const express = require('express'),
+      bodyParser = require('body-parser'),
+      morgan = require('morgan'), // a logger
+      https = require('https'),
+      path = require('path'),
+      url = require('url'),
+      app = express(),
+      config = require('./config/config.json'),
+      userAuth = require('./lib/userAuthentication.js');
 
 userAuth.config(config);
 
-function getType(obj) {
-  return Object.prototype.toString.call(obj);
-}
+// function getType(obj) {
+//   return Object.prototype.toString.call(obj);
+// }
 
 function logError(e) {
   console.log('unhandled error: ' + e);
@@ -48,7 +48,7 @@ function logError(e) {
 
 function copyHash(obj) {
   var copy = {};
-  if (null !== obj && typeof obj == "object") {
+  if (null !== obj && typeof obj === 'object') {
     Object.keys(obj).forEach(function(attr){copy[attr] = obj[attr];});
   }
   return copy;
@@ -64,62 +64,79 @@ function base64Decode(item) {
 
 function authenticateUser(ctx) { return userAuth.authn(ctx); }
 
+function encodeQuerystring(obj) {
+  return Object.keys(obj).map( key => `${key}=` + encodeURIComponent(obj[key]))
+    .join('&');
+}
+
 function postAuthFormData(userInfo) {
-  var copy = {};
-  Object.keys(userInfo).forEach(function(key){
-    if (key != "roles") {
-      copy[key] = userInfo[key];
-    }
-  });
+  var copy = {
+        response_type : 'code',
+        ...userInfo
+      };
   if (userInfo.roles) {
     copy.roles = userInfo.roles.join(',');
   }
   delete copy.status;
-  copy.response_type = 'code';
-  return copy;
+  return encodeQuerystring(copy);
 }
 
 function requestAuthCode(ctx) {
-  return new Promise ((resolve) => {
-    let options = {
-          uri: ctx.fullUrl.replace('login-and-consent', 'oauth2-ac-pkce') +
-        '/authcode?' + querystring.stringify({ sessionid : ctx.sessionid }),
+  return new Promise ( resolve => {
+    let qs = encodeQuerystring({sessionid: ctx.sessionid}),
+        url = new URL(ctx.fullUrl.replace('login-and-consent', 'oauth2-ac-pkce') + `/authcode?${qs}`),
+        options = {
+          hostname: url.hostname,
+          path:`${url.pathname}${url.search}`,
+          protocol: url.protocol,
           method: 'POST',
           headers: {
             'content-type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json'
-          },
-          form : postAuthFormData(ctx.userInfo)
+            accept: 'application/json'
+          }
         };
 
     console.log('requestAuthCode, context:' + JSON.stringify(ctx, null, 2));
     console.log('requestAuthCode, request options:' + JSON.stringify(options, null, 2));
 
-    request(options, function(error, response, body) {
-      if (error) {
-        console.log('Error from /authcode: ' + error);
-        return resolve(ctx);
-      }
-      console.log('/authcode response: ' + response.statusCode);
-      if (response.statusCode == 302) {
-        try {
-          ctx.authRedirLoc = response.headers.location;
-        }
-        catch (exc1) {
-          console.log('auth exception: ' + exc1.message);
-          console.log(exc1.stack);
-        }
-      }
-      else {
-        console.log('Non-302 response from /authcode: ' + response.statusCode);
-        console.log('auth, statusCode = ' + response.statusCode);
-        ctx.authStatusCode = response.statusCode;
-        ctx.authResponseBody = (typeof body == "string") ? JSON.parse(body) : body;
-      }
+    const req = https.request(options, (response) => {
+            let body = '';
+            response.setEncoding('utf8');
+            response.on('data', chunk => {
+              body += chunk;
+            });
+            console.log(`/authcode response: ${response.statusCode}`);
+            ctx.authStatusCode = response.statusCode;
+
+            response.on('end', () => {
+              if (response.statusCode === 302) {
+                try {
+                  ctx.authRedirLoc = response.headers.location;
+                }
+                catch (exc1) {
+                  console.log('auth exception: ' + exc1.message);
+                  console.log(exc1.stack);
+                }
+              }
+              else {
+                console.log('Non-302 response');
+                if (body) {
+                  ctx.authResponseBody = JSON.parse(body);
+                }
+              }
+              resolve(ctx);
+            });
+          });
+
+    req.write(postAuthFormData(ctx.userInfo));
+    req.on('error', e => {
+      console.log('Error from /authcode: ' + e);
       resolve(ctx);
     });
+    req.end();
   });
 }
+
 
 function externalUrl(req) {
   let external = url.format({
@@ -127,56 +144,62 @@ function externalUrl(req) {
         host: req.header('x-external-host'),
         pathname: req.header('x-proxy-basepath')
       });
-  console.log('externalUrl() = %s', external);
+  console.log(`externalUrl: ${external}`);
   return external;
 }
 
 function inquireAuthorizationSessionId(ctx) {
   return new Promise( (resolve, reject) => {
     // send a query to Edge to ask about the oauth session
-    let query = { sessionid : ctx.sessionid },
+    let encodedSessionId = encodeURIComponent(ctx.sessionid),
         endpoint = ctx.fullUrl.replace('login-and-consent', 'oauth2-session'),
-      options = {
-        uri: endpoint + '/info?' + querystring.stringify(query),
-        method: 'GET',
-        headers: {
-          'apikey': config.sessionApi.apikey,
-          'Accept': 'application/json'
-        }
-      };
+        url =  new URL(endpoint + `/info?sessionid=${encodedSessionId}`),
+        options = {
+          hostname: url.hostname,
+          path:`${url.pathname}${url.search}`,
+          protocol: url.protocol,
+          method: 'GET',
+          headers: {
+            apikey: config.sessionApi.apikey,
+            Accept: 'application/json'
+          }
+        };
 
-  console.log('inquireAuthorizationSessionId request: ' + JSON.stringify(options, null, 2));
+    console.log('inquireAuthorizationSessionId request: ' + JSON.stringify(options, null, 2));
 
-  request(options, function(error, response, body) {
-    if (error) {
-      ctx.error = error;
-      return resolve(ctx);
-    }
-    console.log('inquireAuthorizationSessionId response: ' + body);
-    if (response) {
-      if (response.statusCode === 200) {
-        try {
-          body = JSON.parse(body);
-          // Edge knows about the session and has returned information about it.
-          ctx.sessionInfo = body;
-        }
-        catch (exc1) {
-          console.log('inquireAuthorizationSessionId exception: ' + exc1.message);
-        }
-        return resolve(ctx);
-      }
+    const req = https.request(options, response => {
+            let body = '';
+            response.setEncoding('utf8');
+            response.on('data', chunk => {
+              body += chunk;
+            });
+            console.log(`/info response: ${response.statusCode}`);
 
-      console.log('inquireAuthorizationSessionId, statusCode = ' + response.statusCode);
-      return resolve(ctx);
-    }
+            response.on('end', () => {
+              console.log('inquireAuthorizationSessionId response: ' + body);
+              if (response.statusCode === 200) {
+                try {
+                  body = JSON.parse(body);
+                  // Edge knows about the session and has returned information about it.
+                  ctx.sessionInfo = body;
+                }
+                catch (exc1) {
+                  console.log('inquireAuthorizationSessionId exception: ' + exc1.message);
+                }
+              }
+              return resolve(ctx);
+            });
+          });
 
-    console.log('inquireAuthorizationSessionId, no response');
-    reject(ctx);
+    req.on('error', e => {
+      console.log('Error from /info: ' + e);
+      ctx.error = e;
+      reject(ctx);
+    });
+    req.end();
 
-  });
   });
 }
-
 
 app.use(morgan('combined')); // logger
 app.use('/css', express.static(path.join(__dirname, 'css')));
@@ -194,7 +217,7 @@ app.use(bodyParser.json());
 
 
 app.get('/logout', function (request, response) {
-  var auth = request.session.username;
+  //var auth = request.session.username;
   request.session = null; // logout
   response.redirect('manage');
 });
@@ -204,15 +227,24 @@ app.get('/logout', function (request, response) {
 app.get('/cancel', function (request, response) {
   response.status(200);
   response.render('cancel', {
-    title: "Declined",
-    mainMessage: "You have declined.",
+    title: 'Declined',
+    mainMessage: 'You have declined.'
   });
 });
 
 
-
 // display the login form
 app.get('/login', function (request, response) {
+  // GET /login?sessionid=xxxxxxx
+  function renderNoLogin (e) {
+    console.log('error: ' + e);
+      response.status(404);
+      response.render('error404', {
+        mainMessage: 'the sessionid is not known.',
+        title : 'bad sessionid'
+      });
+  }
+
   function renderLogin (ctx) {
     // sessionInfo:
     //   client_id
@@ -231,28 +263,24 @@ app.get('/login', function (request, response) {
       ctx.viewData.postback_url = 'validate';
       ctx.viewData.action = 'Sign in';
       ctx.viewData.sessionid = ctx.sessionid;
-      ctx.viewData.redirect_url = ctx.viewData.redirect_url || "";
-      ctx.viewData.req_state = ctx.viewData.req_state || "";
-      ctx.viewData.appName = ctx.viewData.appName || "";
+      ctx.viewData.redirect_url = ctx.viewData.redirect_url || '';
+      ctx.viewData.req_state = ctx.viewData.req_state || '';
+      ctx.viewData.appName = ctx.viewData.appName || '';
       ctx.viewData.errorMessage = null; // must be present and null
       response.render('login', ctx.viewData);
     }
     else {
-      response.status(404);
-      response.render('error404', {
-        mainMessage: "the sessionid is not known.",
-        title : "bad sessionid"
-      });
+      renderNoLogin();
     }
     return ctx;
   }
 
   Promise.resolve({sessionid: request.query.sessionid, fullUrl: externalUrl(request)})
     .then(inquireAuthorizationSessionId)
-    .then(renderLogin, renderLogin);
+    .then(renderLogin)
+    .catch ( e => renderNoLogin(e)) ;
 
 });
-
 
 
 // respond to the login form postback
@@ -264,7 +292,7 @@ app.post('/validate', function (request, response) {
     return;
   }
 
-  if (request.body.submit != 'yes') {
+  if (request.body.submit !== 'yes') {
     console.log('user has declined to login');
     // ! request.body.redirect_uri.startsWith('oob') &&
     // ! request.body.redirect_uri.startsWith('urn:ietf:wg:oauth:2.0:oob')
@@ -291,7 +319,7 @@ app.post('/validate', function (request, response) {
       appLogoUrl    : request.body.appLogoUrl || 'http://i.imgur.com/6DidtRS.png',
       display       : request.body.display,
       login_hint    : request.body.login_hint,
-      errorMessage  : "You must specify a user and a password."
+      errorMessage  : 'You must specify a user and a password.'
     });
     return;
   }
@@ -322,7 +350,7 @@ app.post('/validate', function (request, response) {
           appLogoUrl    : request.body.appLogoUrl || 'http://i.imgur.com/6DidtRS.png',
           display       : request.body.display,
           login_hint    : request.body.login_hint,
-          errorMessage  : "That login failed."
+          errorMessage  : 'That login failed.'
         });
         return ctx;
       }
@@ -362,7 +390,7 @@ app.post('/grantConsent', function (request, response) {
     return;
   }
 
-  if (request.body.submit != 'yes') {
+  if (request.body.submit !== 'yes') {
     console.log('user has declined to consent');
     // ! request.body.redirect_uri.startsWith('oob') &&
     // ! request.body.redirect_uri.startsWith('urn:ietf:wg:oauth:2.0:oob')
@@ -386,7 +414,7 @@ app.post('/grantConsent', function (request, response) {
         //console.log('ctx: ' + JSON.stringify(ctx));
         response.render('error', {
            errorMessage : (ctx.authResponseBody && ctx.authResponseBody.Error) ? ctx.authResponseBody.Error :
-            "Bad request - cannot redirect"
+            'Bad request - cannot redirect'
         });
       }
       else {
@@ -410,7 +438,7 @@ app.get('/*', function (request, response) {
 });
 
 
-httpPort = process.env.PORT || 5150;
+let httpPort = process.env.PORT || 5150;
 app.listen(httpPort, function() {
   console.log('Listening on port ' + httpPort);
 });
