@@ -1,11 +1,12 @@
 # OAuth Token-granting Proxy for 3-legged (Authorization code) flow with PKCE
 
 This is an API Proxy that implements the OAuth2.0 3-legged (authorization code)
-flow, with PKCE ([RFC 7636](https://tools.ietf.org/html/rfc7636)), which itself is an extension of the OAuthV2 spec ([RFC 6749](https://tools.ietf.org/html/rfc6749)).
+flow, with PKCE ([RFC 7636](https://tools.ietf.org/html/rfc7636)), which itself
+is an extension of the OAuthV2 spec ([RFC 6749](https://tools.ietf.org/html/rfc6749)).
 
 With the authorization code grant, both the user and the app credentials get
-verified. In the Apigee Edge model, there is an external Identity Provider that
-authenticates the user credentials, and Apigee Edge itself authenticates the
+verified. In the Apigee model, there is an external Identity Provider that
+authenticates the user credentials, and Apigee  itself authenticates the
 application (client) credentials.
 
 User authentication obviously requires a login-and-consent user experience.
@@ -14,7 +15,7 @@ For this proxy, the login-and-consent app is bundled within this API Proxy. For
 this demonstration, it's implemented in nodejs, packaged as a hosted target, on
 a separate proxy endpoint. Having the login experience contained within the
 proxy bundle makes it super easy to demonstrate 3-legged OAuthV2 with PKCE in
-Apigee Edge. You won't do this in a production system.
+Apigee. You won't do this in a production system.
 
 In a production system, you could use a hosted target to host the
 login-and-consent experience, but it would need to connect to a proper identity
@@ -111,7 +112,7 @@ Here's a description of the required query parameters:
 
 | param                   | description                                                              |
 | ----------------------- | ------------------------------------------------------------------------ |
-| `client_id`             | a registered client id within Apigee Edge                                |
+| `client_id`             | a registered client id within Apigee                                 |
 | `redirect_uri`          | a valid uri registered for the API Product authorized by that client ID. |
 | `response_type`         | always `code` in this example, for authorization code grant.             |
 | `scope`                 | a space-separated list of scopes allowed by this API Product.            |
@@ -287,9 +288,9 @@ Here's a breakdown of how it works.
    The API Proxy creates a session blob, containing information like the
    client_id, the app name, the scope, and so on. For PKCE, this session also
    stores the CODE_CHALLENGE. It stores this session blob in the in-memory cache for
-   Apigee Edge, using the session id as the cache key. The session id here is
+   Apigee , using the session id as the cache key. The session id here is
    just the "message id", which is a unique string for every request handled by
-   an Apigee Edge API proxy; it's available in a context variable called
+   an Apigee API proxy; it's available in a context variable called
    `messageid`.
 
    The flow then redirects to the login server. This login server can run anywhere;
@@ -319,11 +320,11 @@ Here's a breakdown of how it works.
 
 So this PKCE proxy is really a smple elaboration of the basic Authorization Code
 grant flow, with the addition of checking the challenge and verifier, relying on
-the Apigee Edge cache for that purpose.  The TTL for cached session is tunable
+the Apigee cache for that purpose. The TTL for cached session is tunable
 of course; I set it to 10 minutes to allow delays during demonstrations. It
 makes sense to make that TTL shorter in a production system. 60-180 seconds ought
 to be enough. It's got to be long enough to accommodate the user login and
-consent. That should take 15 seconds or so normally, but one could imagine a
+consent. That should take 15-75 seconds or so normally, but one could imagine a
 longer period in exceptional circumstances.
 
 
