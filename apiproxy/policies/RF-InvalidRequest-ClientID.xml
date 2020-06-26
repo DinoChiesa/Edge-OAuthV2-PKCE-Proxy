@@ -1,4 +1,4 @@
-<RaiseFault name='RF-UnknownRequest'>
+<RaiseFault name='RF-InvalidRequest-ClientID'>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <FaultResponse>
     <Set>
@@ -12,13 +12,13 @@
 
       <Payload contentType='application/json'>{
   "error" : {
-    "code" : 404.01,
-    "message" : "that request was unknown; try a different request."
+    "code" : 400.27,
+    "message" : "client_id mismatch"
   }
 }
 </Payload>
-      <StatusCode>404</StatusCode>
-      <ReasonPhrase>Not Found</ReasonPhrase>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
     </Set>
   </FaultResponse>
 </RaiseFault>

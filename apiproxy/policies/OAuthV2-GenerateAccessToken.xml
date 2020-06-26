@@ -1,6 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OAuthV2 name="OAuthV2-GenerateAccessToken">
     <ExpiresIn>3600000</ExpiresIn>
+    <!--
+    RefreshTokenExpiresIn, in milliseconds.
+      691200000 = 8 days
+    -->
+    <RefreshTokenExpiresIn>691200000</RefreshTokenExpiresIn>
     <SupportedGrantTypes>
       <GrantType>authorization_code</GrantType>
     </SupportedGrantTypes>

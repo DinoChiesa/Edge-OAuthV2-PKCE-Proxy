@@ -1,11 +1,11 @@
-<RaiseFault name='RF-InvalidRequest'>
+<RaiseFault name='RF-InvalidRequest-SessionID'>
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <FaultResponse>
     <Set>
       <Payload contentType='application/json'>{
   "error" : {
     "code" : 400.14,
-    "message" : "missing query parameter: txid"
+    "message" : "missing query parameter: sessionid"
   }
 }
 </Payload>

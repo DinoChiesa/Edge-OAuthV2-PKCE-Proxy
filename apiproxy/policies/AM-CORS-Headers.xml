@@ -1,6 +1,6 @@
 <AssignMessage name="AM-CORS-Headers">
     <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
-    <AssignTo createNew="false" transport="http" type="response"/>
+    <AssignTo>response</AssignTo>
     <Set>
       <Headers>
         <Header name="Access-Control-Allow-Origin">{request.header.origin}</Header>

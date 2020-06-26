@@ -31,7 +31,7 @@
       </Request>
       <Response>
       <Step>
-        <Name>AM-CORS-Preflight</Name>
+        <Name>AM-CORS-Headers</Name>
       </Step>
       </Response>
       <Condition>request.verb = "OPTIONS"</Condition>
@@ -118,7 +118,7 @@
 
     <Flow name="token">
       <!--
-          The app uses this request to exchange the code for a token.
+          The client app uses this request to exchange the code for a token.
           Example:
 
           POST /devjam3/oauth2-ac/token?
@@ -132,6 +132,10 @@
       <Condition>(proxy.pathsuffix MatchesPath "/token") and (request.verb = "POST")</Condition>
       <Description/>
       <Request>
+        <Step>
+          <Name>RF-InvalidRequest-ClientID</Name>
+          <Condition>request.formparam.client_id = null</Condition>
+        </Step>
 
         <Step>
           <Name>CL-AuthTxForCode</Name>
@@ -142,6 +146,12 @@
         </Step>
         <Step>
           <Name>JS-ImportJsonToContext</Name>
+        </Step>
+
+        <!-- verify the client_id -->
+        <Step>
+          <Name>RF-InvalidRequest-ClientID</Name>
+          <Condition>NOT (authtx_client_id = request.formparam.client_id)</Condition>
         </Step>
 
         <!-- check the Code verifier -->
@@ -159,10 +169,21 @@
         <Step>
           <Name>AM-DeleteForwardedHeaders</Name>
         </Step>
+
+        <!-- get the client secret -->
         <Step>
-          <Name>AM-SetRedirectUri</Name>
+          <Name>AE-App</Name>
         </Step>
+        <Step>
+          <Name>JS-ExtractClientSecret</Name>
+        </Step>
+
+        <Step>
+          <Name>AM-SetRequiredParameters</Name>
+        </Step>
+
       </Request>
+
       <Response>
         <Step>
           <Name>OAuthV2-GenerateAccessToken</Name>

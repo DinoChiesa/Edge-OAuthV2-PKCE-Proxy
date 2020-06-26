@@ -1,0 +1,19 @@
+<AssignMessage name="AM-SetRequiredParameters">
+  <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  <AssignVariable>
+    <Name>request.formparam.redirect_uri</Name>
+    <Ref>authtx_redirect_uri</Ref>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>composite</Name>
+    <Template>{request.formparam.client_id}:{extracted_consumer_secret}</Template>
+  </AssignVariable>
+
+  <!-- Produce the "Basic Auth" header that OauthV2/GenerateAccessToken expects -->
+  <AssignVariable>
+    <Name>request.header.authorization</Name>
+    <Template>{encodeBase64(composite)}</Template>
+  </AssignVariable>
+
+</AssignMessage>

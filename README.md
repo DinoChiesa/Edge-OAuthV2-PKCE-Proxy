@@ -10,17 +10,19 @@ application (client) credentials.
 
 User authentication obviously requires a login-and-consent user experience.
 
-For this proxy, the login-and-consent app is bundled within this API Proxy. (For
-the curious, it's deployed as a nodejs app, packaged as a hosted target, for a
-separate proxy endpoint) Having the login experience bundled in the proxy makes
-it super easy to demonstrate 3-legged OAuthV2 with PKCE in Apigee Edge. You
-won't do this in a production system.
+For this proxy, the login-and-consent app is bundled within this API Proxy. For
+this demonstration, it's implemented in nodejs, packaged as a hosted target, on
+a separate proxy endpoint. Having the login experience contained within the
+proxy bundle makes it super easy to demonstrate 3-legged OAuthV2 with PKCE in
+Apigee Edge. You won't do this in a production system.
 
+In a production system, you could use a hosted target to host the
+login-and-consent experience, but it would need to connect to a proper identity
+provider.
 
 ## Disclaimer
 
 This example is not an official Google product, nor is it part of an official Google product.
-
 
 
 ## The Basics of the Code Verifier and Challenge
@@ -59,55 +61,29 @@ Before exercising this demonstration, you need to:
    Retain the client_id and client_secret of the developer app.
 
 
-Fortunately, there are command-line helper tools that do this work for you. To use them, you need node and npm.
+Fortunately, there are command-line helper tools that help you do the
+preparation work. To use them, you need to have a current installation of node and npm.
+
+## Provision the assets with the Command-line tool
+
+Open a terminal window and run these commands:
 
 ```
 cd tools
 npm install
-ORG=MyORG
+ORG=myorg
 ENV=myenv
 node ./importAndDeploy.js -v -o $ORG -e $ENV -d ..
 node ./provision.js -v -o $ORG -e $ENV
 ```
 
-
-## To Kick off the flow
-
-Once the pre-requisites are provisioned in your Apigee Edge organization, you can exercise the example. To do that you need to invoke the /authorize endpoint. This is the standard way to start a 3-legged OAuth token acquisition.
-
-From the command line, you could do it like this:
-
-```
-ORG=MyORG
-ENV=myenv
-client_id=whatever
-client_secret=whatever
-redirect_uri=https://dinochiesa.github.io/pkce-redirect/callback-handler.html
-code_verifier=SOME_RANDOM_STRING_OF_CHARACTERS_OF_SUFFICIENT_LENGTH
-code_challenge=BASE64URL(SHA256(code_verifier))
-
-curl -i -X GET "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=A&code_challenge=${code_challenge}&code_challenge_method=S256"
-```
-
-Breaking that request down, here are the query params.
-
-| param                 | description                                                              |
-| --------------------- | ------------------------------------------------------------------------ |
-| client_id             | a registered client id within Apigee Edge                                |
-| redirect_uri          | a valid uri registered for the API Product authorized by that client ID. |
-| response_type         | always `code` in this example, for authorization code grant.             |
-| scope                 | a space-separated list of scopes allowed by this API Product.            |
-| code_challenge        | the [code challenge](https://tools.ietf.org/html/rfc7636#section-4.1) as described by RFC 7636. |
-| code_challenge_method | the code challenge method. For calls to this proxy, must always have the value S256.            |
-
-## Provision the assets with the Command-line tool
-
 The provision.js tool checks for or creates the cache, product, developer and app,
 and then emits a few lines that you can copy/paste to set shell variables. The
 final output of that tool looks like this:
+
 ```
-ORG=gaccelerate3
-ENV=test
+ORG=orgname
+ENV=envname
 client_id=LadBY5r7wscxF4MXftAvAL9OBQ3j4D1G
 client_secret=Kh56uyE5GrujzCQs
 redirect_uri=https://dinochiesa.github.io/pkce-redirect/callback-handler.html
@@ -115,16 +91,48 @@ code_verifier=j2lfhcgv8y0eld7rztsxwilfkovtqnn8laclgtze73qqxi8bjxu8lbp1xpqzpkfrll
 code_challenge=_em6TflF_a7HvzptwpKdAz_R9SPRvzBbUCvZuwfDWo4
 ```
 
+Your output will be different.
+
+You're going to need that information in a few mooments.
+
+
+## To Kick off the flow
+
+Now that the pre-requisites are provisioned in your Apigee organization, you
+can exercise the example. To do that you need to invoke the /authorize
+endpoint. This is the standard way to start a 3-legged OAuth token acquisition.
+
+From the command line, you could do it like this:
+
+```
+curl -i -X GET "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=A&code_challenge=${code_challenge}&code_challenge_method=S256"
+```
+
+Here's a description of the required query parameters:
+
+| param                   | description                                                              |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `client_id`             | a registered client id within Apigee Edge                                |
+| `redirect_uri`          | a valid uri registered for the API Product authorized by that client ID. |
+| `response_type`         | always `code` in this example, for authorization code grant.             |
+| `scope`                 | a space-separated list of scopes allowed by this API Product.            |
+| `code_challenge`        | the [code challenge](https://tools.ietf.org/html/rfc7636#section-4.1) as described by RFC 7636. |
+| `code_challenge_method` | the code challenge method. For calls to this proxy, must always have the value S256.            |
+
+
+For the `redirect_uri`, I suggest using my own callback endpoint on a
+publicly-available webpage: `https://dinochiesa.github.io/pkce-redirect/callback-handler.html`
+
+## Initiate the flow from a Terminal
 
 If you want to examine what the API Proxy is doing, now is a good time to enable
 tracing on the proxy.  Do that within the Apigee Admin UI. The proxy name is:
 `oauth2-ac-pkce`.
 
 
-## Initiate the flow from a Terminal
-
-If you want to invoke the API from the terminal, you can copy/paste those
-lines and then invoke the curl command as shown above:
+Now, invoke the API from the terminal. First, copy/paste the output
+lines from the provision.js tool. This sets shell variables ffor all of the
+required parameters. After that, invoke the curl command as shown above:
 ```
 curl -i -X GET "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=A&code_challenge=${code_challenge}&code_challenge_method=S256"
 ```
@@ -133,6 +141,14 @@ This will initiate the flow and return you a URL that will allow the user to
 login. You need to copy THAT and paste it into a browser bar to get the
 login-and-consent user experience.
 
+> You can alternatively use a webpage to kick off the flow. To do that, visit
+> [https://dinochiesa.github.io/pkce-redirect/](https://dinochiesa.github.io/pkce-redirect/),
+> and fill in the form fields with the values that were emitted by the
+> provision.js tool.
+
+
+Regardless whether you use a terminal or the webpage to initiate the flow, you
+will then visit the login-and-consent application.
 The login-and-consent app uses a mock user database; these are the valid username / password pairs:
 * dino@apigee.com / IloveAPIs
 * valerie@example.com / Wizard123
@@ -141,17 +157,16 @@ The login-and-consent app uses a mock user database; these are the valid usernam
 * naimish@example.com / Imagine4
 
 
-After consent, you will then receive a code in the browser page.
+After you consent, you will then receive a code in the browser page.
 
 ## To Exchange the code and verifier for a token
 
 Copy the code shown in the redirect_uri web page, then paste it into a request like so:
 
 ```
-CODE=authorization_code
+CODE=insert_authorization_code
 curl -i -X POST "https://$ORG-$ENV.apigee.net/20181127/oauth2-ac-pkce/token" \
-   -u ${client_id}:${client_secret} \
-   -d "grant_type=authorization_code&code=${CODE}&code_verifier=${code_verifier}"
+   -d "grant_type=authorization_code&client_id=${client_id}&code=${CODE}&code_verifier=${code_verifier}"
 ```
 
 This will then show you the token response. It looks like this:
@@ -331,11 +346,10 @@ is no service-level guarantee for responses to inquiries regarding this example.
 
 ## License
 
-This material is copyright 2018-2019 Google LLC.
+This material is copyright 2018-2020 Google LLC.
 and is licensed under the [Apache 2.0 License](LICENSE).
 
 
 ## Bugs
 
 ??
-

@@ -2,6 +2,14 @@
   <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
   <FaultResponse>
     <Set>
+      <!-- required by CORS -->
+      <Headers>
+        <Header name="Access-Control-Allow-Origin">{request.header.origin}</Header>
+        <Header name='Access-Control-Allow-Methods'>POST, GET, OPTIONS</Header>
+        <Header name='Access-Control-Allow-Headers'>Accept, Content-Type, connection, content-length, Authorization</Header>
+        <Header name='Access-Control-Allow-Credentials'>true</Header>
+      </Headers>
+
       <Payload contentType='application/json'>{
   "error" : {
     "code" : 401.14,

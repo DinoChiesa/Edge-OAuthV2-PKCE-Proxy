@@ -3,4 +3,51 @@
     <Name>code_challenge</Name>
     <Template>{sha256Base64(request.formparam.code_verifier)}</Template>
   </AssignVariable>
+
+  <!-- convert that to base64url -->
+  <AssignVariable>
+    <Name>plus_regex</Name>
+    <Value>\+</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>minus</Name>
+    <Value>-</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>slash_regex</Name>
+    <Value>/</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>underscore</Name>
+    <Value>_</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>equals_regex</Name>
+    <Value>=</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>empty_string</Name>
+    <Value></Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>code_challenge</Name>
+    <Template>{replaceAll(code_challenge,plus_regex,minus)}</Template>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>code_challenge</Name>
+    <Template>{replaceAll(code_challenge,slash_regex,underscore)}</Template>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>code_challenge</Name>
+    <Template>{replaceAll(code_challenge,equals_regex,empty_string)}</Template>
+  </AssignVariable>
+
 </AssignMessage>

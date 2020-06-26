@@ -1,0 +1,8 @@
+<AccessEntity name='AE-App'>
+  <EntityType value='app' />
+  <EntityIdentifier type='consumerkey' ref='request.formparam.client_id' />
+  <!--
+    The result is stored in a variable: AccessEntity.AE-App
+    Next step is to use ExtractVariables to get a value from that entity.
+  -->
+</AccessEntity>

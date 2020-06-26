@@ -45,7 +45,7 @@
       <Description>Retrieve info regarding an existing authorization session</Description>
       <Request>
         <Step>
-          <Name>RF-InvalidRequest</Name>
+          <Name>RF-InvalidRequest-SessionID</Name>
           <Condition>request.queryparam.sessionid = null</Condition>
         </Step>
         <Step><Name>CL-AuthorizationSession</Name></Step>
