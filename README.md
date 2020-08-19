@@ -74,11 +74,11 @@ cd tools
 npm install
 ORG=myorg
 ENV=myenv
-node ./importAndDeploy.js -v -o $ORG -e $ENV -d ..
+
 node ./provision.js -v -o $ORG -e $ENV
 ```
 
-The provision.js tool checks for or creates the cache, product, developer and app,
+The provision.js tool imports and deploys the proxy checks for and creates the product, developer and app,
 and then emits a few lines that you can copy/paste to set shell variables. The
 final output of that tool looks like this:
 
@@ -354,5 +354,5 @@ and is licensed under the [Apache 2.0 License](LICENSE).
 
 ## Bugs
 
-* the provision script creates a cache resource 'cache1' which is no longer used by the proxy.
-* the provision script with -R does not undeploy or delete the API Proxy. 
+??
+

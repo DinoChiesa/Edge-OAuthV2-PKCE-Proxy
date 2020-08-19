@@ -2,8 +2,8 @@
 /*jslint node:true */
 // provisioningTool.js
 // ------------------------------------------------------------------
-// provision an Apigee Edge API Product, Developer, App, and Cache
-// for the OAuthV2 PKCE Example.
+// provision an Apigee Proxy, API Product, Developer, and App
+// for the OAuthV2 PKCE Example. Or de-provision.
 //
 // Copyright 2017-2020 Google LLC.
 //
@@ -22,18 +22,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-August-19 10:04:21>
+// last saved: <2020-August-19 13:12:51>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
       apigeeEdge = edgejs.edge,
       util       = require('util'),
+      path       = require('path'),
       sprintf    = require('sprintf-js').sprintf,
       Getopt     = require('node-getopt'),
-      version    = '20200819-1004',
+      version    = '20200819-1216',
       getopt     = new Getopt(common.commonOptions.concat([
         ['R' , 'reset', 'Optional. Reset, delete all the assets previously created by this script'],
-        ['e' , 'env=ARG', 'the Edge environment(s) to use for this demonstration. ']
+        ['e' , 'env=ARG', 'the Edge environment to use for this demonstration. ']
       ])).bindHelp();
 
 // ========================================================
@@ -67,9 +68,15 @@ common.logWrite('start');
 let opt = getopt.parse(process.argv.slice(2));
 common.verifyCommonRequiredParameters(opt.options, getopt);
 
+if ( !opt.options.env ) {
+  console.log('You must specify an environment');
+  getopt.showHelp();
+  process.exit(1);
+}
+
 const constants = {
         discriminators : {
-          cache        : 'cache1',
+          apiproxy     : 'oauth2-ac-pkce',
           product      : 'PKCE-Example-Product',
           developer    : 'PKCE-Example-Developer@example.com',
           developerapp : 'PKCE-Example-App-1'
@@ -86,7 +93,8 @@ const constants = {
         password   : opt.options.password,
         no_token   : opt.options.notoken,
         verbosity  : opt.options.verbose || 0
-      };
+      },
+      proxySource = path.join(__dirname, '..');
 
 apigeeEdge.connect(connectOptions)
   .then( org => {
@@ -95,7 +103,8 @@ apigeeEdge.connect(connectOptions)
       let delOptions = {
             app       : { appName: constants.discriminators.developerapp, developerEmail: constants.discriminators.developer },
             developer : { developerEmail: constants.discriminators.developer },
-            product   : { productName: constants.discriminators.product }
+            product   : { productName: constants.discriminators.product },
+            proxy     : { environment: opt.options.env, name: constants.discriminators.apiproxy }
           };
 
       // delete items and ignore 404 errors
@@ -104,7 +113,6 @@ apigeeEdge.connect(connectOptions)
                .catch(e => {
                  if ( ! e.result || e.result.code != 'developer.service.DeveloperDoesNotExist' ) {
                    console.log(e);
-                   return Promise.reject(e);
                  }
                }))
         .then( _ => org.developers.del(delOptions.developer)
@@ -119,15 +127,24 @@ apigeeEdge.connect(connectOptions)
                    console.log(e);
                  }
                }))
+        .then( _ => org.proxies.undeploy(delOptions.proxy)
+               .catch(e => {
+                 if ( ! e.result || (e.result.code != 'distribution.RevisionNotDeployed' &&
+                      e.result.code != 'messaging.config.beans.ApplicationDoesNotExist')) {
+                   console.log(e);
+                 }
+               }))
+        .then( _ => org.proxies.del(delOptions.proxy)
+               .catch(e => {
+                 if ( ! e.result || e.result.code != 'messaging.config.beans.ApplicationDoesNotExist' ) {
+                   console.log(e);
+                 }
+               }))
 
         .then( _ => common.logWrite(sprintf('ok. demo assets have been deleted')) );
     }
 
     let options = {
-          caches: {
-            get: { environment : opt.options.env },
-            create: { cacheName : constants.discriminators.cache, environment : opt.options.env }
-          },
           products: {
             create: {
               productName  : constants.discriminators.product,
@@ -183,7 +200,9 @@ apigeeEdge.connect(connectOptions)
         });
     }
 
-    return conditionallyCreateEntity('cache')
+    return Promise.resolve({})
+      .then( _ => org.proxies.import({source:proxySource}))
+      .then( r => org.proxies.deploy({name:r.name, revision:r.revision, environment: opt.options.env}))
       .then( _ => conditionallyCreateEntity('product'))
       .then( _ => conditionallyCreateEntity('developer'))
       .then( _ => conditionallyCreateEntity('developerapp'))
