@@ -355,3 +355,4 @@ and is licensed under the [Apache 2.0 License](LICENSE).
 ## Bugs
 
 * the provision script creates a cache resource 'cache1' which is no longer used by the proxy.
+* the provision script with -R does not undeploy or delete the API Proxy. 
