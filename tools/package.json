@@ -1,6 +1,6 @@
 {
   "name": "oauthv2-ac-pkce-example-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "tools for OAuthV2 PKCE Example",
   "main": "contriveProofKey.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "crypto-js": "^3.1.9-1",
-    "apigee-edge-js": "^0.4.13",
+    "apigee-edge-js": ">=0.4.17",
     "sprintf-js": "^1.1.1",
     "node-getopt": "^0.3.1"
   },

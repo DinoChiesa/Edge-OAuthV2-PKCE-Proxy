@@ -1,5 +1,7 @@
 <InvalidateCache name='CI-AuthTxForCode'>
+<!--
   <CacheResource>cache1</CacheResource>
+-->
   <Scope>Global</Scope>
   <CacheKey>
     <Prefix>authz-sess-code</Prefix>

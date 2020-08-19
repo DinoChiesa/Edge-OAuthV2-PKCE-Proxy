@@ -1,6 +1,8 @@
 <PopulateCache name="CP-AuthTxForCode">
   <DisplayName>Cache Populate: SessionID For Code</DisplayName>
+<!--
   <CacheResource>cache1</CacheResource>
+-->
   <Scope>Global</Scope>
   <Source>authtx</Source>
   <CacheKey>

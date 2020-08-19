@@ -5,11 +5,10 @@
 // provision an Apigee Edge API Product, Developer, App, and Cache
 // for the OAuthV2 PKCE Example.
 //
-// Copyright 2017-2019 Google LLC.
+// Copyright 2017-2020 Google LLC.
 //
 
 /* jshint esversion: 9, strict:implied */
-
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +22,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-June-26 10:37:22>
+// last saved: <2020-August-19 09:21:09>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -31,7 +30,7 @@ const edgejs     = require('apigee-edge-js'),
       util       = require('util'),
       sprintf    = require('sprintf-js').sprintf,
       Getopt     = require('node-getopt'),
-      version    = '20190927-0856',
+      version    = '20200819-0914',
       getopt     = new Getopt(common.commonOptions.concat([
         ['R' , 'reset', 'Optional. Reset, delete all the assets previously created by this script'],
         ['e' , 'env=ARG', 'the Edge environment(s) to use for this demonstration. ']
@@ -133,12 +132,13 @@ apigeeEdge.connect(connectOptions)
               developerEmail : constants.discriminators.developer
             },
             create: {
-              appName      : constants.discriminators.developerapp,
-              productName  : constants.discriminators.product,
-              description  : 'Test Product for PKCE OauthV2 Example',
-              scopes       : constants.scopes,
-              attributes   : { access: 'public', note: constants.note },
-              approvalType : 'auto'
+              developerEmail : constants.discriminators.developer,
+              appName        : constants.discriminators.developerapp,
+              apiProduct     : constants.discriminators.product,
+              description    : 'Test Product for PKCE OauthV2 Example',
+              scopes         : constants.scopes,
+              attributes     : { access: 'public', note: constants.note },
+              approvalType   : 'auto'
             }
           }
         };
@@ -156,6 +156,9 @@ apigeeEdge.connect(connectOptions)
               });
             }
             return Promise.resolve(result) ;
+          }
+          if (opt.options.verbose) {
+            console.log('CREATE: ' + JSON.stringify(options[collectionName].create));
           }
           return org[collectionName].create(options[collectionName].create);
         });

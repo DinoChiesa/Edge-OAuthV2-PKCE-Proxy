@@ -247,12 +247,12 @@ Once you authenticate and grant consent, you will receive a code via the `redire
 ## To Exchange the code and verifier for a token
 
 After authenticating and granting consent, you will be redirected to a simple
-page showing the authorization code. 
+page showing the authorization code.
 Copy the code (ctrl-C).
 
 Return to the helper page and paste in the code in the appropriate
 box at the bottom of the form. Press tab. The helper page will generate the cURL request
-that allows you to redeem the code for a token. 
+that allows you to redeem the code for a token.
 
 You can then copy that command to run it from the terminal, or click the Redeem
 button to invoke the appropriate command from the browser itself.

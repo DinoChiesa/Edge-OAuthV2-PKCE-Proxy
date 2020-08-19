@@ -1,6 +1,8 @@
 <PopulateCache name="CP-AuthorizationSession">
   <DisplayName>Cache Populate: Authorization Session</DisplayName>
+<!--
   <CacheResource>cache1</CacheResource>
+-->
   <Scope>Global</Scope>
   <Source>authorization_session_info</Source>
   <CacheKey>

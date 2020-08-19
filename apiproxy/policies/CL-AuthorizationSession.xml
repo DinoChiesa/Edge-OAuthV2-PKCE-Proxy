@@ -1,6 +1,8 @@
 <LookupCache name='CL-AuthorizationSession'>
   <DisplayName>Cache Lookup: Authorization Session</DisplayName>
+<!--
   <CacheResource>cache1</CacheResource>
+-->
   <Scope>Global</Scope>
   <AssignTo>authtx</AssignTo>
   <CacheKey>
