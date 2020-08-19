@@ -22,7 +22,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-August-19 09:39:37>
+// last saved: <2020-August-19 10:04:21>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -30,7 +30,7 @@ const edgejs     = require('apigee-edge-js'),
       util       = require('util'),
       sprintf    = require('sprintf-js').sprintf,
       Getopt     = require('node-getopt'),
-      version    = '20200819-0914',
+      version    = '20200819-1004',
       getopt     = new Getopt(common.commonOptions.concat([
         ['R' , 'reset', 'Optional. Reset, delete all the assets previously created by this script'],
         ['e' , 'env=ARG', 'the Edge environment(s) to use for this demonstration. ']
