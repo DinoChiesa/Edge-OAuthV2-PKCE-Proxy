@@ -22,7 +22,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// last saved: <2020-August-19 09:21:09>
+// last saved: <2020-August-19 09:39:37>
 
 const edgejs     = require('apigee-edge-js'),
       common     = edgejs.utility,
@@ -92,15 +92,34 @@ apigeeEdge.connect(connectOptions)
   .then( org => {
     common.logWrite('connected');
     if (opt.options.reset) {
-      let delOptions ={
-            app: { appName: constants.discriminators.developerapp, developerEmail: constants.discriminators.developer },
-            developer:  { developerEmail: constants.discriminators.developer },
-            product : { productName: constants.discriminators.product }
+      let delOptions = {
+            app       : { appName: constants.discriminators.developerapp, developerEmail: constants.discriminators.developer },
+            developer : { developerEmail: constants.discriminators.developer },
+            product   : { productName: constants.discriminators.product }
           };
 
-      return org.developerapps.del(delOptions.app)
-        .then( _ => org.developers.del(delOptions.developer) )
-        .then( _ => org.products.del(delOptions.product) )
+      // delete items and ignore 404 errors
+      return Promise.resolve({})
+        .then( _ => org.developerapps.del(delOptions.app)
+               .catch(e => {
+                 if ( ! e.result || e.result.code != 'developer.service.DeveloperDoesNotExist' ) {
+                   console.log(e);
+                   return Promise.reject(e);
+                 }
+               }))
+        .then( _ => org.developers.del(delOptions.developer)
+               .catch(e => {
+                 if ( ! e.result || e.result.code != 'developer.service.DeveloperDoesNotExist' ) {
+                   console.log(e);
+                 }
+               }))
+        .then( _ => org.products.del(delOptions.product)
+               .catch(e => {
+                 if ( ! e.result || e.result.code != 'keymanagement.service.apiproduct_doesnot_exist' ) {
+                   console.log(e);
+                 }
+               }))
+
         .then( _ => common.logWrite(sprintf('ok. demo assets have been deleted')) );
     }
 
