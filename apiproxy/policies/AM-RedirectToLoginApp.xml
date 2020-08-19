@@ -1,18 +1,38 @@
 <AssignMessage name="AM-RedirectToLoginApp">
+
+  <AssignVariable>
+    <Name>loginurl</Name>
+    <Template>{client.scheme}://{request.header.Host}{proxy.basepath}/../login-and-consent/login?sessionid={messageid}</Template>
+  </AssignVariable>
+
+  <!-- remove the the 'basepath/..' from the URL -->
+  <AssignVariable>
+    <Name>regex</Name>
+    <Value>([-_a-zA-Z0-9]+)/\.\./</Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>empty</Name>
+    <Value></Value>
+  </AssignVariable>
+
+  <AssignVariable>
+    <Name>loginurl</Name>
+    <Template>{replaceFirst(loginurl,regex,empty)}</Template>
+  </AssignVariable>
+
   <Remove>
     <Headers/>
   </Remove>
   <Set>
     <Headers>
       <!--
-          this redirects to a login and consent app. This app happens to be hosted
+          This redirects to a login and consent app. The app happens to be hosted
           within this api proxy bundle.  For demo purposes only.
       -->
-      <Header name="Location">
-        {client.scheme}://{request.header.Host}{proxy.basepath}/../login-and-consent/login?sessionid={messageid}
-      </Header>
+      <Header name="Location">{loginurl}</Header>
     </Headers>
-    <Payload contentType="text/plain">{client.scheme}://{request.header.Host}{proxy.basepath}/../login-and-consent/login?sessionid={messageid}</Payload>
+    <Payload contentType="text/plain">{loginurl}</Payload>
     <StatusCode>302</StatusCode>
     <ReasonPhrase>Found</ReasonPhrase>
   </Set>
