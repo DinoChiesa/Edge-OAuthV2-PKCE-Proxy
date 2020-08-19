@@ -333,7 +333,7 @@ longer period in exceptional circumstances.
 If you want to remove all the assets that were provisioned by the tool for this example, do this:
 
 ```
-node ./provision.js -v -o gaccelerate3 -e test -R
+node ./provision.js -v -o $ORG -e $ENV -R
 
 ```
 
@@ -354,4 +354,4 @@ and is licensed under the [Apache 2.0 License](LICENSE).
 
 ## Bugs
 
-??
+* the provision script creates a cache resource 'cache1' which is no longer used by the proxy.
