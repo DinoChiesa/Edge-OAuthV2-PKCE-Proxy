@@ -14,7 +14,7 @@ var consumerSecret = null;
 // if there are multiple credentials, then the variable is varNamePrefix + '.INDEX.ConsumerKey'
 // where INDEX is replaced with [1,2,3,4....]
 
-// first look for the "one credentia" case.
+// first look for the "one credential" case.
 var consumerKey = context.getVariable(varNamePrefix + 'ConsumerKey');
 if (clientId == consumerKey) {
   consumerSecret = context.getVariable(varNamePrefix + 'ConsumerSecret');
