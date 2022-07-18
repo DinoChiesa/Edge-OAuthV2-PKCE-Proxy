@@ -215,7 +215,7 @@ environment variables. Then, Initiate the login flow again as described above.
 ## The Web Helper
 
 If you don't want to use the command line, there is [a helper web
-page](https://dinochiesa.github.io/pkce-redirect/pkce-link-builder.html) to
+page](https://dinochiesa.github.io/pkce-redirect/index.html) to
 assist you in building the /authorize URL and kicking things off.
 
 To use it, fill in the form with the appropriate values for your org, env, app
